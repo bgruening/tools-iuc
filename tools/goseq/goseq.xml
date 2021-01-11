@@ -1,7 +1,7 @@
 <tool id="goseq" name="goseq" version="@VERSION@+@GALAXY_VERSION@">
     <description>tests for overrepresented gene categories</description>
     <xrefs>
-        <xref type='bio.tools'>goseq</xref>
+        <xref type="bio.tools">goseq</xref>
     </xrefs>
     <macros>
         <token name="@VERSION@">1.36.0</token>

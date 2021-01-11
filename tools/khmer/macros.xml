@@ -3,7 +3,7 @@
     <token name="@TOOL_VERSION@">+galaxy1</token>
     <xml name="bio_tools">
         <xrefs>
-            <xref type='bio.tools'>khmer</xref>
+            <xref type="bio.tools">khmer</xref>
         </xrefs>
     </xml>
     <xml name="requirements">

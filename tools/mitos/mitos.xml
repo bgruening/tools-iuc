@@ -1,7 +1,7 @@
 <tool id="mitos" name="@MITOS_NAME@" version="@MITOS_VERSION@" profile="20.01">
     <description>de-novo annotation of metazoan mitochondrial genomes</description>
     <xrefs>
-        <xref type='bio.tools'>mitos</xref>
+        <xref type="bio.tools">mitos</xref>
     </xrefs>
     <macros>
         <import>macros.xml</import>

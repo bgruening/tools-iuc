@@ -1,7 +1,7 @@
 <tool id="featurecounts" name="featureCounts" version="2.0.1" profile="16.04">
     <description>Measure gene expression in RNA-Seq experiments from SAM or BAM files</description>
     <xrefs>
-        <xref type='bio.tools'>subread</xref>
+        <xref type="bio.tools">subread</xref>
     </xrefs>
     <requirements>
         <requirement type="package" version="2.0.1">subread</requirement>

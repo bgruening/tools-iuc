@@ -3,7 +3,7 @@
         Perform differential expression with limma-voom or limma-trend
     </description>
     <xrefs>
-        <xref type='bio.tools'>limma</xref>
+        <xref type="bio.tools">limma</xref>
     </xrefs>
     <requirements>
         <requirement type="package" version="3.38.3">bioconductor-limma</requirement>
