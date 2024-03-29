@@ -1,4 +1,4 @@
-<tool id="autogenjb2" name="Autogenerate JBrowse2" version="2.10.2.0" profile="22.05">
+<tool id="autogenjb2" name="Autogenerate JBrowse2" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="22.05">
     <description>Track collection to JBrowse2</description>
     <macros>
         <import>macros.xml</import>
@@ -8,6 +8,7 @@
         <xref type="bio.tools">jbrowse2</xref>
     </xrefs>
     <expand macro="requirements"/>
+    <expand macro="creators"/>
     <version_command>python '${__tool_directory__}/autogenJB2.py' --version</version_command>
     <command detect_errors="aggressive"><![CDATA[
 export JBROWSE2_PATH=\$(dirname \$(which jbrowse))/../opt/jbrowse2  &&
@@ -169,8 +170,6 @@ you filter your blast results before display, e.g. picking out the top
 **Protein blast search** option merely informs underlying tools that
 they should adjust feature locations by 3x.
 
-
-@ATTRIBUTION@
 ]]></help>
     <expand macro="citations"/>
 </tool>
