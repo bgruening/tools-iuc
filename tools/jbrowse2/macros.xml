@@ -24,13 +24,14 @@
         </requirements>
     </xml>
     <token name="@DATA_DIR@">\$GALAXY_JBROWSE_SHARED_DIR</token>
-    <token name="@WRAPPER_VERSION@">galaxy2</token>
-    <token name="@ATTRIBUTION@"><![CDATA[
-**Attribution**
-This Galaxy tool relies on the JBrowse2, maintained by the GMOD Community. The Galaxy wrapper is maintained by Ross Lazarus
-until the IUC complete their own.
-]]>
-    </token>
+    <token name="@VERSION_SUFFIX@">0</token>
+    <xml name="creators">
+        <creator>
+            <person givenName="Helena" familyName="Rasche" url="https://github.com/hexylena" />
+            <person givenName="Anthony" familyName="Bretaudeau" url="https://github.com/abretaud" />
+            <person givenName="Ross" familyName="Lazarus" url="https://github.com/fubar2/" />
+        </creator>
+    </xml>
     <xml name="genome_selector" token_help="" token_label="Fasta sequences" token_optional="False">
         <conditional name="reference_genome">
             <param help="Built-in references" label="Reference genome to display" name="genome_type_select" type="select">
