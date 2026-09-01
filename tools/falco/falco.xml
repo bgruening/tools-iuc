@@ -27,27 +27,127 @@
             #if $adapters:
                 --adapters '${adapters}'
             #end if
-
-            #if $config:
-                --config '${config}'
-            #end if
             $groups
             $tiles
+            $dups
+            $adap
+            $kmers
+            #if str($advanced.orig_dups) == "true":
+                --orig-dups
+            #end if
             $bisulfite
+            #if str($advanced.custom_thresholds.use_custom) == "true":
+                --config '$limits_config'
+            #end if
             '${input_name_sl}'
         &&
         cp 'outdir/${input_name_sl}/fastqc_report.html' '$html_file' &&
         cp 'outdir/${input_name_sl}/fastqc_data.txt' '$text_file' &&
         cp 'outdir/${input_name_sl}/summary.txt' '$summary_file'
     ]]></command>
+    <configfiles>
+        <configfile name="limits_config"><![CDATA[
+#if str($advanced.custom_thresholds.use_custom) == "true"
+## Generated from user-specified threshold values
+## Module enable/disable (controlled by CLI flags, but required in config)
+duplication	ignore	0
+#if str($kmers) == "--kmers"
+kmer	ignore	0
+#else
+kmer	ignore	1
+#end if
+n_content	ignore	0
+overrepresented	ignore	0
+quality_base	ignore	0
+sequence	ignore	0
+gc_sequence	ignore	0
+quality_sequence	ignore	0
+#if str($tiles) == "--tiles"
+tile	ignore	0
+#else
+tile	ignore	1
+#end if
+sequence_length	ignore	0
+#if str($adap) == "--no-adap"
+adapter	ignore	1
+#else
+adapter	ignore	0
+#end if
+
+## Threshold values
+duplication	warn	$advanced.custom_thresholds.dup_warn
+duplication	error	$advanced.custom_thresholds.dup_error
+kmer	warn	$advanced.custom_thresholds.kmer_warn
+kmer	error	$advanced.custom_thresholds.kmer_error
+n_content	warn	$advanced.custom_thresholds.n_content_warn
+n_content	error	$advanced.custom_thresholds.n_content_error
+overrepresented	warn	$advanced.custom_thresholds.overrep_warn
+overrepresented	error	$advanced.custom_thresholds.overrep_error
+quality_base_lower	warn	$advanced.custom_thresholds.quality_base_lower_warn
+quality_base_lower	error	$advanced.custom_thresholds.quality_base_lower_error
+quality_base_median	warn	$advanced.custom_thresholds.quality_base_median_warn
+quality_base_median	error	$advanced.custom_thresholds.quality_base_median_error
+sequence	warn	$advanced.custom_thresholds.sequence_warn
+sequence	error	$advanced.custom_thresholds.sequence_error
+gc_sequence	warn	$advanced.custom_thresholds.gc_sequence_warn
+gc_sequence	error	$advanced.custom_thresholds.gc_sequence_error
+quality_sequence	warn	$advanced.custom_thresholds.quality_sequence_warn
+quality_sequence	error	$advanced.custom_thresholds.quality_sequence_error
+tile	warn	$advanced.custom_thresholds.tile_warn
+tile	error	$advanced.custom_thresholds.tile_error
+sequence_length	warn	$advanced.custom_thresholds.sequence_length_warn
+sequence_length	error	$advanced.custom_thresholds.sequence_length_error
+adapter	warn	$advanced.custom_thresholds.adapter_warn
+adapter	error	$advanced.custom_thresholds.adapter_error
+#end if
+]]></configfile>
+    </configfiles>
     <inputs>
         <param format="fastq,fastq.gz" name="input_file" type="data" label="Raw read data from your current history"/>
         <param argument="--contaminants" type="data" format="tabular" optional="true" label="Contaminant list" help="Tab-delimited file with two columns: name and sequence. Replaces falco's default contaminant list."/>
         <param argument="--adapters" type="data" format="tabular" optional="true" label="Adapter list" help="Tab-delimited file with two columns: name and sequence. Replaces falco's default adapter list."/>
-        <param argument="--config" type="data" format="txt" optional="true" label="Configuration file" help="A FastQC-style configuration file that specifies which modules to run and the warning/error thresholds for each module. Lets you disable modules (for example per-tile or duplication) and customise limits."/>
         <param argument="--groups" type="boolean" truevalue="--groups" falsevalue="" checked="false" label="Group base positions" help="Group base positions in plots. Falco 2.0+ reports individual base positions by default; enable this to group positions (equivalent to FastQC's default grouping for reads longer than 50 bp)."/>
         <param argument="--tiles" type="boolean" truevalue="--tiles" falsevalue="--no-tiles" checked="false" label="Per-tile quality analysis" help="Per-tile sequence quality analysis. Only meaningful for Illumina data with tile information in read headers. Disabled by default because falco 2.0.x can fail on some non-standard read headers."/>
+        <param argument="--dups" type="boolean" truevalue="--dups" falsevalue="--no-dups" checked="true" label="Sequence duplication analysis" help="Toggle duplication and overrepresented sequences analysis."/>
+        <param argument="--adap" type="boolean" truevalue="" falsevalue="--no-adap" checked="true" label="Adapter content analysis" help="Toggle adapter content analysis."/>
+        <param argument="--kmers" type="boolean" truevalue="--kmers" falsevalue="--no-kmers" checked="false" label="K-mer content analysis" help="Toggle k-mer content analysis. Disabled by default."/>
         <param argument="--bisulfite" type="boolean" truevalue="--bisulfite" falsevalue="" checked="false" label="Bisulfite sequencing" help="Indicate that reads come from whole-genome bisulfite sequencing so falco accounts for the expected increase in T and decrease in C in the base content."/>
+        <section name="advanced" title="Advanced options" expanded="false">
+            <param argument="--orig-dups" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Use original duplication mode" help="Use falco's original (pre-2.0) duplication grading algorithm instead of the new improved one. Only relevant when duplication analysis is enabled."/>
+            <conditional name="custom_thresholds">
+                <param name="use_custom" type="select" label="Custom warn/error thresholds" help="By default falco uses built-in threshold values for each module's WARN/FAIL grades. Enable this to override them with your own values. A configuration file is generated on the fly and passed to falco.">
+                    <option value="false" selected="true">No, use default thresholds</option>
+                    <option value="true">Yes, set custom thresholds</option>
+                </param>
+                <when value="false"/>
+                <when value="true">
+                    <param name="dup_warn" type="float" value="70" min="0" max="100" label="Duplication: warn if deduplicated percentage below" help="Percentage remaining after deduplication."/>
+                    <param name="dup_error" type="float" value="50" min="0" max="100" label="Duplication: error if deduplicated percentage below"/>
+                    <param name="kmer_warn" type="float" value="2" min="0" label="K-mer: warn if -log10 p-value above" help="Filter on the -log10 binomial p-value for the most significant k-mer."/>
+                    <param name="kmer_error" type="float" value="5" min="0" label="K-mer: error if -log10 p-value above"/>
+                    <param name="n_content_warn" type="float" value="5" min="0" max="100" label="N content: warn if percentage of Ns above"/>
+                    <param name="n_content_error" type="float" value="20" min="0" max="100" label="N content: error if percentage of Ns above"/>
+                    <param name="overrep_warn" type="float" value="0.1" min="0" max="100" label="Overrepresented sequences: warn if proportion above" help="Proportion of the library seen as a single sequence."/>
+                    <param name="overrep_error" type="float" value="1" min="0" max="100" label="Overrepresented sequences: error if proportion above"/>
+                    <param name="quality_base_lower_warn" type="integer" value="10" min="0" max="40" label="Per-base quality: warn if lower quartile below"/>
+                    <param name="quality_base_lower_error" type="integer" value="5" min="0" max="40" label="Per-base quality: error if lower quartile below"/>
+                    <param name="quality_base_median_warn" type="integer" value="25" min="0" max="40" label="Per-base quality: warn if median below"/>
+                    <param name="quality_base_median_error" type="integer" value="20" min="0" max="40" label="Per-base quality: error if median below"/>
+                    <param name="sequence_warn" type="float" value="10" min="0" max="100" label="Per-base sequence content: warn if max deviation above" help="Maximum deviation between A and T or C and G."/>
+                    <param name="sequence_error" type="float" value="20" min="0" max="100" label="Per-base sequence content: error if max deviation above"/>
+                    <param name="gc_sequence_warn" type="float" value="15" min="0" max="100" label="Per-sequence GC content: warn if deviation above" help="Maximum deviation between the theoretical and observed distribution."/>
+                    <param name="gc_sequence_error" type="float" value="30" min="0" max="100" label="Per-sequence GC content: error if deviation above"/>
+                    <param name="quality_sequence_warn" type="integer" value="27" min="0" max="40" label="Per-sequence quality: warn if most common phred score below"/>
+                    <param name="quality_sequence_error" type="integer" value="20" min="0" max="40" label="Per-sequence quality: error if most common phred score below"/>
+                    <param name="tile_warn" type="float" value="5" min="0" label="Per-tile quality: warn if phred score loss above" help="Maximum phred score loss between an individual tile and the average for that base."/>
+                    <param name="tile_error" type="float" value="10" min="0" label="Per-tile quality: error if phred score loss above"/>
+                    <param name="sequence_length_warn" type="integer" value="1" min="0" max="1" label="Sequence length: warn threshold" help="Binary flag (0=off, 1=on). Warns if sequences have different lengths."/>
+                    <param name="sequence_length_error" type="integer" value="1" min="0" max="1" label="Sequence length: error threshold" help="Binary flag (0=off, 1=on).Errors if sequences have zero length."/>
+                    <param name="adapter_warn" type="float" value="5" min="0" max="100" label="Adapter content: warn if percentage above" help="Percentage of reads containing an adapter-associated k-mer."/>
+                    <param name="adapter_error" type="float" value="10" min="0" max="100" label="Adapter content: error if percentage above"/>
+                </when>
+            </conditional>
+        </section>
     </inputs>
     <outputs>
         <data format="html" name="html_file" label="${tool.name} on ${on_string}: Webpage"/>
@@ -111,18 +211,38 @@
             <output name="text_file" file="fastqc_data_adapters.txt" ftype="txt"/>
             <output name="summary_file" file="fastqc_data_adapters_summary.txt" ftype="txt"/>
         </test>
-        <!-- Configuration file controlling modules and limits -->
+        <!-- Disable duplication and adapter modules via CLI flags -->
         <test expect_num_outputs="3">
             <param name="input_file" value="1000trimmed.fastq"/>
-            <param name="config" value="limits.txt" ftype="txt"/>
+            <param name="dups" value="false"/>
+            <param name="adap" value="false"/>
             <output name="html_file" ftype="html">
                 <assert_contents>
                     <has_text text="1000trimmed_fastq - report"/>
                     <has_text text="Falco 2.0.1"/>
                 </assert_contents>
             </output>
-            <output name="text_file" file="fastqc_data_customlimits.txt" ftype="txt"/>
-            <output name="summary_file" file="fastqc_data_customlimits_summary.txt" ftype="txt"/>
+            <output name="text_file" file="fastqc_data_no_dups_adap.txt" ftype="txt"/>
+            <output name="summary_file" file="fastqc_data_no_dups_adap_summary.txt" ftype="txt"/>
+        </test>
+        <!-- Custom thresholds generated via configfile -->
+        <test expect_num_outputs="3">
+            <param name="input_file" value="1000trimmed.fastq"/>
+            <section name="advanced">
+                <conditional name="custom_thresholds">
+                    <param name="use_custom" value="true"/>
+                    <param name="n_content_warn" value="3"/>
+                    <param name="n_content_error" value="10"/>
+                </conditional>
+            </section>
+            <output name="html_file" ftype="html">
+                <assert_contents>
+                    <has_text text="1000trimmed_fastq - report"/>
+                    <has_text text="Falco 2.0.1"/>
+                </assert_contents>
+            </output>
+            <output name="text_file" file="fastqc_data_custom_thresholds.txt" ftype="txt"/>
+            <output name="summary_file" file="fastqc_data_custom_thresholds_summary.txt" ftype="txt"/>
         </test>
         <!-- Grouped base positions -->
         <test expect_num_outputs="3">
@@ -205,7 +325,6 @@ Optionally you can provide:
 
 - a **Contaminant list** - a tab-delimited file with two columns (name and sequence) that replaces falco's default contaminant list
 - an **Adapter list** - a tab-delimited file with two columns (name and sequence) that replaces falco's default adapter list
-- a **Configuration file** - a FastQC-style file that specifies which modules to run and the warning/error thresholds for each module
 
 The tool produces three outputs:
 
@@ -215,15 +334,28 @@ The tool produces three outputs:
 
 -----
 
-**Notes on BAM/SAM input**
+**Module toggles**
 
-Falco 2.0.0 was a complete rewrite. BAM and SAM input are currently unreliable in the 2.0.x releases (see upstream issue [#45](https://github.com/smithlabcode/falco/issues/45)), so this wrapper only accepts FASTQ/FASTQ.gz input for now. BAM/SAM support will be re-enabled once the upstream issue is resolved.
+You can enable or disable individual analysis modules:
+
+- **Per-tile quality analysis** - only meaningful for Illumina data with tile information in read headers
+- **Sequence duplication analysis** - duplication and overrepresented sequences
+- **Adapter content analysis** - adapter content detection
+- **K-mer content analysis** - disabled by default
+
+In the **Advanced options** section you can also switch to falco's original (pre-2.0) duplication grading algorithm with **Use original duplication mode**.
 
 -----
 
-**Per-tile quality analysis**
+**Custom thresholds**
 
-Per-tile sequence quality analysis is only meaningful for Illumina data that carries tile information in the read headers. It is disabled by default because falco 2.0.x can fail on some non-standard headers; enable it only when your reads have valid Illumina tile coordinates.
+In the **Advanced options** section you can override the default WARN/FAIL threshold values for each module's grading. When enabled, a configuration file is generated on the fly from your specified values and passed to falco. All threshold values use the same units as FastQC's `limits.txt` configuration file.
+
+-----
+
+**Notes on BAM/SAM input**
+
+Falco 2.0.0 was a complete rewrite. BAM and SAM input are currently unreliable in the 2.0.x releases (see upstream issue [#45](https://github.com/smithlabcode/falco/issues/45)), so this wrapper only accepts FASTQ/FASTQ.gz input for now. BAM/SAM support will be re-enabled once the upstream issue is resolved.
     ]]></help>
     <citations>
         <citation type="doi">10.12688/f1000research.21142.2</citation>

@@ -1,2 +1,0 @@
-PASS	Basic Statistics	1000trimmed_fastq
-WARN	Sequence Length Distribution	1000trimmed_fastq
