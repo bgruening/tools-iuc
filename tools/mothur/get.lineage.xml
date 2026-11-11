@@ -1,4 +1,4 @@
-<tool profile="16.07" id="mothur_get_lineage" name="Get.lineage" version="@WRAPPER_VERSION@.0">
+<tool profile="16.07" id="mothur_get_lineage" name="Get.lineage" version="@WRAPPER_VERSION@.1">
     <description>Picks by taxon</description>
     <macros>
         <import>macros.xml</import>
@@ -38,7 +38,9 @@ echo 'get.lineage(
     #end if
     #if $file.taxons:
         #set taxonstring=str($file.taxons).replace(",","-")
-        ,taxon='"'$re.sub("(\s|,)+",",",$re.sub("\(\d+\)","", $taxonstring ))'"'
+        ## taxon values are escaped for the shell so they are passed to
+        ## mothur as literal data.
+        ,taxon='"'$re.sub("(\s|,)+",",",$re.sub("\(\d+\)","", $taxonstring )).replace("\\","\\\\").replace('"','\\"').replace("$","\\$").replace("`","\\`")'"'
     #elif $taxon:
         ,taxon='"'$re.sub("(\s|,)+",",",$re.sub("\(\d+\)","", $taxon.value )).replace(",","-")'"'
     #end if
@@ -188,6 +190,19 @@ echo 'get.lineage(
             <param name="taxonomy" value="example.constaxonomy" ftype="mothur.cons.taxonomy"/>
             <param name="taxons" value="Bacteria(100);Firmicutes(100);Clostridia(70);Clostridiales(70);Lachnospiraceae(51);unclassified;,Bacteria(100);Proteobacteria(100);Gammaproteobacteria(100);unclassified;unclassified;unclassified;"/>
             <output name="taxonomy_out" md5="0ea2511f40073a95c0812268da0cf727"/>
+        </test>
+        <!-- Regression test: taxon values from the taxonomy file must be
+             passed through literally (the mothur log echoes the command). -->
+        <test expect_num_outputs="2">
+            <param name="filetype" value="usetaxonomy"/>
+            <param name="taxonomy" value="injection_probe.taxonomy" ftype="mothur.seq.taxonomy"/>
+            <param name="taxons" value="Bacteria(100);Firmicutes(100);Clostridia(100);Clostridiales(100);Lachnospiraceae(100);Dorea(99);,Bacteria(100);X$(exit${IFS}1)Y;(100);"/>
+            <param name="savelog" value="true"/>
+            <output name="logfile" ftype="txt">
+                <assert_contents>
+                    <has_text text="$(exit${IFS}1)"/>
+                </assert_contents>
+            </output>
         </test>
     </tests>
     <help><![CDATA[
