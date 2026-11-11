@@ -44,8 +44,17 @@ Rscript '$__tool_directory__/plotdexseq.R'
             </param>
             <when value="single">
                 <param name="geneid" type="text" label="Gene identifier" help="Gene identifier to visualize">
+                    <!-- Single quotes are escaped so the value is passed
+                         into the command as literal data; the allowed
+                         character set is otherwise unchanged. -->
                     <sanitizer>
-                        <valid initial="string.letters,string.digits,string.punctuation"><add value="_" /></valid>
+                        <valid initial="string.letters,string.digits,string.punctuation">
+                            <add value="_"/>
+                            <remove value="&apos;"/>
+                        </valid>
+                        <mapping initial="none">
+                            <add source="&apos;" target="&apos;&quot;&apos;&quot;&apos;"/>
+                        </mapping>
                     </sanitizer>
                 </param>
             </when>
@@ -100,6 +109,20 @@ Rscript '$__tool_directory__/plotdexseq.R'
             <param name="pl_width" value="5"/>
             <param name="pl_height" value="3"/>
             <output name="dexseq_plot" ftype="pdf" file="plotdexseq_multi_custom_dim.pdf" compare="sim_size"/>
+        </test>
+        <!-- Regression test: the gene id must be passed through
+             literally. -->
+        <test expect_num_outputs="1">
+            <param name="rdata" ftype="rdata" value="dexseq.rds"/>
+            <param name="primaryfactor" value="condition"/>
+            <conditional name="genes">
+                <param name="genes_select" value="single"/>
+                <param name="geneid" value="&apos;;exit${IFS}1;&apos;"/>
+            </conditional>
+            <param name="fdr_cutoff" value="1"/>
+            <assert_stderr>
+                <has_text text="No read counts falling in this gene"/>
+            </assert_stderr>
         </test>
     </tests>
     <help><![CDATA[
