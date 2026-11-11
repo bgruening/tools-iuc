@@ -1,6 +1,6 @@
 <macros>
     <token name="@TOOL_VERSION@">0.8.0</token>
-    <token name="@VERSION_SUFFIX@">1</token>
+    <token name="@VERSION_SUFFIX@">2</token>
     <token name="@PROFILE@">22.01</token>
     <xml name="requirements">
         <requirements>
@@ -102,9 +102,17 @@ ln -s '$bam' '$fn' &&
                     </when>
                     <when value="separator">
                         <param argument="--separator" type="text" label="Character that separates genome names from contig names in the reference file." >
+                            <!-- Single quotes are escaped so the value is
+                                 passed into the command as literal data; the
+                                 allowed character set is otherwise
+                                 unchanged. -->
                             <sanitizer>
                                 <valid initial="string.punctuation">
+                                    <remove value="&apos;"/>
                                 </valid>
+                                <mapping initial="none">
+                                    <add source="&apos;" target="&apos;&quot;&apos;&quot;&apos;"/>
+                                </mapping>
                             </sanitizer>
                         </param>
                     </when>

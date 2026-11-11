@@ -652,6 +652,78 @@ coverm
                 </assert_contents>
             </output>
         </test>
+        <!-- Regression test: the separator must be passed through
+             literally (an invalid multi-character separator is rejected with
+             the value in the error message). -->
+        <test expect_failure="true">
+            <conditional name="mapped">
+                <param name="mapped" value="not-mapped" />
+                <conditional name="mode">
+                    <param name="mode" value="co"/>
+                    <conditional name="read_type">
+                        <param name="type" value="paired_collection"/>
+                        <param name="paired_reads">
+                            <collection type="list:paired">
+                                <element name="reads_for_seq1_and_seq2">
+                                    <collection type="paired">
+                                        <element name="forward" value="reads_for_seq1_and_seq2.1.fq.gz" ftype="fastqsanger.gz"/>
+                                        <element name="reverse" value="reads_for_seq1_and_seq2.2.fq.gz" ftype="fastqsanger.gz"/>
+                                    </collection>
+                                </element>
+                            </collection>
+                        </param>
+                    </conditional>
+                    <repeat name="extra_reads">
+                        <conditional name="read_type">
+                            <param name="type" value="single"/>
+                            <param name="single" value="reads_for_seq1_and_seq2.fna"/>
+                        </conditional>
+                    </repeat>
+                    <conditional name="genome">
+                        <param name="ref_or_genome" value="contigs"/>
+                        <param name="reference" value="7seqs.fna" />
+                        <conditional name="cond_single_genome">
+                            <param name="single_genome" value=""/>
+                            <conditional name="genome_contig_definition">
+                                <param name="choice" value="separator"/>
+                                <param name="separator" value="$(&apos;)"/>
+                            </conditional>
+                        </conditional>
+                    </conditional>
+                </conditional>
+            </conditional>
+            <param name="exclude_genomes_from_deshard" value="false"/>
+            <section name="alignment">
+                <param name="min_read_aligned_length" value="0" />
+                <param name="min_read_percent_identity" value="0" />
+                <param name="min_read_aligned_percent" value="0" />
+                <conditional name="proper_pairs_only">
+                    <param name="proper_pairs_only" value=""/>
+                </conditional>
+                <param name="exclude_supplementary" value=""/>
+            </section>
+            <section name="cov">
+                <param name="methods" value="mean,relative_abundance,variance"/>
+                <param name="trim_min" value="5"/>
+                <param name="trim_max" value="95"/>
+                <param name="min_covered_fraction" value="10"/>
+                <param name="contig_end_exclusion" value="75"/>
+            </section>
+            <section name="derep">
+                <conditional name="dereplicate">
+                    <param name="dereplicate" value=""/>
+                </conditional>
+            </section>
+            <section name="out">
+                <param name="output_format" value="sparse"/>
+                <param name="no_zeros" value=""/>
+                <param name="dereplication_output_cluster_definition" value="" />
+                <param name="dereplication_output_representative_fasta_directory_copy"  value="" />
+            </section>
+            <assert_stderr>
+                <has_text text="$(&apos;)"/>
+            </assert_stderr>
+        </test>
     </tests>
     <help><![CDATA[
 .. class:: infomark
