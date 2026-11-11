@@ -80,6 +80,30 @@
                 </assert_contents>
             </output>
         </test>
+        <!-- Regression test: a '$' in the sample name is neutralized by
+             Galaxy's default sanitizer and appears literally in the output. -->
+        <test>
+            <param name="inputFile" value="picard_ARRG.bam"/>
+            <conditional name="read_group_id_conditional">
+                <param name="do_auto_name" value="false"/>
+                <param name="ID" value="id-1"/>
+            </conditional>
+            <conditional name="read_group_sm_conditional">
+                <param name="do_auto_name" value="false"/>
+                <param name="SM" value="x$(echo INJECTION_PROBE)"/>
+            </conditional>
+            <conditional name="read_group_lb_conditional">
+                <param name="do_auto_name" value="false"/>
+                <param name="LB" value="tumor-a"/>
+            </conditional>
+            <param name="PL" value="ILLUMINA"/>
+            <param name="PU" value="run-1"/>
+            <output name="outFile" ftype="bam" decompress="true">
+                <assert_contents>
+                    <has_text text="SM:xX(echo INJECTION_PROBE)"/>
+                </assert_contents>
+            </output>
+        </test>
     </tests>
     <help>
 
