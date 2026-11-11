@@ -184,6 +184,18 @@
                 </assert_contents>
             </output>
         </test>
+        <!-- Regression test: the reference genome name must be passed
+             through literally (it is echoed in the tool log). -->
+        <test>
+            <param name="input_file" value="testTaf.taf"/>
+            <conditional name="reference">
+                <param name="type" value="specific"/>
+                <param name="reference" value="Anc2&apos;;touch${IFS}/tmp/INJECTION_PROBE_TAFFY;&apos;"/>
+            </conditional>
+            <assert_stderr>
+                <has_text text="INJECTION_PROBE_TAFFY"/>
+            </assert_stderr>
+        </test>
     </tests>
     <help><![CDATA[
 Taffy coverage calculates basic pairwise coverage statistics between a reference genome and other genomes in a TAF file. 

@@ -31,8 +31,8 @@
                 --nameMapFile '$input_mapping'
             #end if
             #if $region.extract == 'true':
-                --region $region.region
-            #end if 
+                --region '$region.region'
+            #end if
             #if $onlyDifferences.show == 'reference':
                 --showOnlyReferenceDifferences
             #else if $onlyDifferences.show == 'lineage':
@@ -409,6 +409,18 @@
                     <has_size size="646" delta="10"/>
                 </assert_contents>
             </output>
+        </test>
+        <!-- Regression test: the region must be passed through
+             literally. -->
+        <test expect_failure="true">
+            <param name="input_file" value="testTaf.taf"/>
+            <conditional name="region">
+                <param name="extract" value="true"/>
+                <param name="region" value="Anc0.Anc0refChr0:100-2000&apos;;touch${IFS}/tmp/INJECTION_PROBE_TAFFYV;&apos;"/>
+            </conditional>
+            <assert_stderr>
+                <has_text text="INJECTION_PROBE_TAFFYV"/>
+            </assert_stderr>
         </test>
     </tests>
     <help><![CDATA[
