@@ -4,7 +4,7 @@
     <!-- macros applying to all umi_tools -->
 
     <token name="@TOOL_VERSION@">1.1.6</token>
-    <token name="@VERSION_SUFFIX@">0</token>
+    <token name="@VERSION_SUFFIX@">1</token>
     <token name="@PROFILE@">23.1</token>
     <xml name="requirements">
         <requirements>
@@ -303,8 +303,16 @@
             </param>
             <when value="read_id" >
                 <param argument="--umi-separator" type="text" label="Delimiter between read id and the UMI" value="_" >
-                    <sanitizer invalid_char="" >
-                        <valid initial="string.punctuation" />
+                    <!-- Single quotes are escaped so the value is passed
+                         into the command as literal data; the allowed
+                         character set is otherwise unchanged. -->
+                    <sanitizer invalid_char="">
+                        <valid initial="string.punctuation">
+                            <remove value="&apos;"/>
+                        </valid>
+                        <mapping initial="none">
+                            <add source="&apos;" target="&apos;&quot;&apos;&quot;&apos;"/>
+                        </mapping>
                     </sanitizer>
                 </param>
             </when>

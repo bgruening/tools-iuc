@@ -65,6 +65,24 @@
             </section>
             <output name="output" file="dedup_out1.bam" ftype="bam" lines_diff="2"/><!--lines_diff won't be needed in later versions since umitools use \-\-no-PG internally -->
         </test>
+        <!-- Regression test: the UMI separator must be passed through
+             literally (it appears in the umi-tools log). -->
+        <test expect_failure="true">
+            <param name="input" value="group_in1.sam" ftype="sam" />
+            <section name="advanced">
+                <param name="random_seed" value="0" />
+            </section>
+            <conditional name="bc">
+                <param name="extract_umi_method" value="read_id" />
+                <param name="umi_separator" value="$(&apos;)" />
+            </conditional>
+            <section name="umi">
+                <param name="method" value="unique" />
+            </section>
+            <assert_stderr>
+                <has_text text="$(&apos;)"/>
+            </assert_stderr>
+        </test>
         <test expect_num_outputs="1">
             <param name="input" value="group_in2.sam" ftype="sam" />
             <section name="advanced">
