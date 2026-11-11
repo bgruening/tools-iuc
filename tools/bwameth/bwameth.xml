@@ -2,7 +2,7 @@
     <description>Fast and accurate aligner of BS-Seq reads</description>
     <macros>
         <token name="@TOOL_VERSION@">0.2.10</token>
-        <token name="@VERSION_SUFFIX@">0</token>
+        <token name="@VERSION_SUFFIX@">1</token>
         <token name="@PROFILE@">20.05</token>
     </macros>
     <requirements>
@@ -120,7 +120,14 @@ bwameth.py
             </when>
         </conditional>
         <param name="readGroup" type="text" value="" label="Read group" help="If desired, you can manually add read group information to the resulting BAM file. To do so, you MUST manually specify the entire string, such as '@RG\tID:foo\tSM:bar'">
-            <sanitizer sanitize="False"/>
+            <!-- Single quotes are replaced (read group strings do not use
+                 them); everything else (backslashes, tabs, @, $, ...) passes
+                 through unchanged. -->
+            <sanitizer>
+                <valid initial="string.printable">
+                    <remove value="&apos;"/>
+                </valid>
+            </sanitizer>
         </param>
     </inputs>
     <outputs>
@@ -154,6 +161,27 @@ bwameth.py
                 </param>
             </conditional>
             <output file="output.bam" ftype="bam" name="output" lines_diff="7"/>
+        </test>
+        <!-- Regression test: the read group value must reach the BAM header
+             literally. -->
+        <test expect_num_outputs="1">
+            <conditional name="referenceSource">
+                <param name="source" value="history"/>
+                <param name="reference" value="ref.fa.gz"/>
+            </conditional>
+            <conditional name="single_or_paired">
+                <param name="single_or_paired_opts" value="paired"/>
+                <param name="input_mate1" value="t_R1.fastq.gz"/>
+                <param name="input_mate2" value="t_R2.fastq.gz"/>
+            </conditional>
+            <param name="readGroup" value="@RG\tID:rg1\tSM:q&apos;; touch /tmp/INJECTION_PROBE_BWAMETH ; &apos;"/>
+            <output name="output" ftype="bam" decompress="true">
+                <assert_contents>
+                    <!-- single quotes are replaced by the sanitizer (see
+                         above), everything else reaches the header literally -->
+                    <has_text text="SM:qX; touch /tmp/INJECTION_PROBE_BWAMETH ; X"/>
+                </assert_contents>
+            </output>
         </test>
     </tests>
     <help><![CDATA[
