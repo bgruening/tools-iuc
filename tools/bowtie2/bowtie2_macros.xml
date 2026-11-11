@@ -1,6 +1,6 @@
 <macros>
     <token name="@TOOL_VERSION@">2.5.5</token>
-    <token name="@VERSION_SUFFIX@">0</token>
+    <token name="@VERSION_SUFFIX@">1</token>
     <token name="@PROFILE@">23.0</token>
     <!-- Import this at the top of your command block and then
          define rg_auto_name. -->
@@ -37,6 +37,12 @@
 
 #def format_read_group(prefix, value, quote='', arg='')
     #if $value
+        #set $value = str($value)
+        #if $quote == '"':
+            #set $value = $value.replace('\\', '\\\\').replace('"', '\\"').replace('$', '\\$').replace('`', '\\`')
+        #else if $quote == "'":
+            #set $value = $value.replace("'", "'\\''")
+        #end if
         #return $arg + $quote + $prefix + $value + $quote
     #else
         #return ''
