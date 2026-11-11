@@ -271,7 +271,17 @@ plot_out <- plot_out +
                         </param>
                         <when value="selected_colors">
                             <param name="plot_color" type="color" value="" label="Pick color">
-                                 <sanitizer sanitize="false"/>
+                                <!-- Escape single quotes so the value is
+                                     passed into the R script as literal
+                                     data. -->
+                                <sanitizer>
+                                    <valid initial="string.printable">
+                                        <remove value="&apos;"/>
+                                    </valid>
+                                    <mapping initial="none">
+                                        <add source="&apos;" target="\&apos;"/>
+                                    </mapping>
+                                </sanitizer>
                             </param>
                         </when>
                         <when value="default">

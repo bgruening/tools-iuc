@@ -306,6 +306,21 @@ plot_out <- ggplot(input, aes_string(x=names(input)[$xplot], y=names(input)[$ypl
             </section>
             <output name="output2" file="ggplot_point_result3.pdf" ftype="pdf" compare="sim_size" />
         </test>
+        <!-- Regression test: the axis label must be passed into the R
+             script literally. -->
+        <test expect_num_outputs="2">
+            <param name="input1" value="mtcars.txt" ftype="tabular" />
+            <conditional name="cols">
+                <param name="header" value="yes"/>
+                <param name="xplot" value="8"/>
+                <param name="yplot" value="9"/>
+            </conditional>
+            <param name="xlab" value="x&apos;); stop(&apos;INJECTION_PROBE_GGPLOT&apos;); (&apos;"/>
+            <section name="out">
+                <param name="additional_output_format" value="pdf" />
+            </section>
+            <output name="output2" ftype="pdf" />
+        </test>
     </tests>
     <help><![CDATA[
 This tool will generate a scatterplot representing data from two groups/conditions.

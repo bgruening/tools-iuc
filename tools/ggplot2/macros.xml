@@ -12,7 +12,7 @@
         </xrefs>
     </xml>
     <token name="@TOOL_VERSION@">3.5.1</token>
-    <token name="@VERSION_SUFFIX@">2</token>
+    <token name="@VERSION_SUFFIX@">3</token>
 
     <token name="@R_INIT@"><![CDATA[
         ## Setup R error handling to go to stderr
@@ -154,10 +154,26 @@
     </xml>
     <xml name="xy_lab">
         <param name="xlab" type="text" value="Title of x-axis" label="Label for x axis">
-            <sanitizer sanitize="false"/>
+            <!-- Escape single quotes so the value is passed into the R
+                 script as literal data. -->
+            <sanitizer>
+                <valid initial="string.printable">
+                    <remove value="&apos;"/>
+                </valid>
+                <mapping initial="none">
+                    <add source="&apos;" target="\&apos;"/>
+                </mapping>
+            </sanitizer>
         </param>
         <param name="ylab" type="text" value="Title of y-axis" label="Label for y axis">
-            <sanitizer sanitize="false"/>
+            <sanitizer>
+                <valid initial="string.printable">
+                    <remove value="&apos;"/>
+                </valid>
+                <mapping initial="none">
+                    <add source="&apos;" target="\&apos;"/>
+                </mapping>
+            </sanitizer>
         </param>
     </xml>
     <xml name="legend">
