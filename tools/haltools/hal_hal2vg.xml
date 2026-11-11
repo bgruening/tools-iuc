@@ -93,6 +93,16 @@
             </conditional>
             <output name="output_file" ftype="hal.pg" file="hal2vg_refGenomes_output.pg"/>
         </test>
+        <!-- Regression test: the genome list must be passed through
+             literally. -->
+        <test expect_num_outputs="1">
+            <param name="input_hal" value="halTest.hal"/>
+            <conditional name="mode">
+                <param name="reference" value="--refGenomes"/>
+                <param name="refGenomes" value="Genome_0&apos;;touch${IFS}/tmp/INJECTION_PROBE_HAL;&apos;"/>
+            </conditional>
+            <output name="output_file" ftype="hal.pg" file="hal2vg_probe_output.pg"/>
+        </test>
         <test expect_num_outputs="1">
             <param name="input_hal" value="halTest.hal"/>
             <param name="noAncestors" value="true"/>

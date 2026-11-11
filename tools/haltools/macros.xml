@@ -5,8 +5,8 @@
         </requirements>
     </xml>
     <token name="@TOOL_VERSION@">3.1.4</token>
-    <token name="@VERSION_SUFFIX@">0</token>
-    <token name="@VERSION_SUFFIX_HAL2VG@">1</token>
+    <token name="@VERSION_SUFFIX@">1</token>
+    <token name="@VERSION_SUFFIX_HAL2VG@">2</token>
     <token name="@PROFILE@">25.1</token>
     <xml name="stdio">
         <stdio>
@@ -162,10 +162,17 @@
         <param argument="--noMarkAncestors" type="boolean" truevalue="--noMarkAncestors" falsevalue="" checked="false" label="Don't mark ancestors" help="Don't mark ancestors for update"/>
     </xml>
     <xml name="sanitizer_default">
-        <sanitizer invalid_char="">                
+        <!-- Single quotes are escaped so values are passed into the command
+             as literal data; the allowed character set is otherwise
+             unchanged. -->
+        <sanitizer invalid_char="">
             <valid initial="string.ascii_letters,string.digits,string.punctuation">
                 <add value=" "/>
+                <remove value="&apos;"/>
             </valid>
+            <mapping initial="none">
+                <add source="&apos;" target="&apos;&quot;&apos;&quot;&apos;"/>
+            </mapping>
         </sanitizer>
     </xml>
     <xml name="validator_trim">
