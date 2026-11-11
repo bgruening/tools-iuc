@@ -1,4 +1,4 @@
-<tool id="sourmash_tax_grep" name="sourmash tax grep" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="@PROFILE@">
+<tool id="sourmash_tax_grep" name="sourmash tax grep" version="@TOOL_VERSION@+galaxy1" profile="@PROFILE@">
     <description>searches taxonomies for matching strings</description>
     <macros>
         <import>macros.xml</import>
@@ -22,8 +22,16 @@
     <inputs>
         <expand macro="tax_files" help="The 'tax grep' searches taxonomies for matching strings and saves them into a new database."/>
         <param name="pattern" label="Pattern" type="text" help="Pattern is a regular expression. Note: tax grep only searches taxonomic ranks, not identifier strings.">
+            <!-- Escape single quotes so the value is passed through as
+                 literal data; regex metacharacters are preserved (this is a
+                 regular expression parameter). -->
             <sanitizer>
-                <valid initial="string.printable"/>
+                <valid initial="string.printable">
+                    <remove value="&apos;"/>
+                </valid>
+                <mapping initial="none">
+                    <add source="&apos;" target="&apos;&quot;&apos;&quot;&apos;"/>
+                </mapping>
             </sanitizer>
         </param>
         <param name="rank" type="select" label="Rank" optional="true" help="Restrict query to this rank. Note that the taxonomy CSV must contain lineage information at this rank">
@@ -95,6 +103,47 @@
             </output>
             <assert_stderr>
                 <has_text text="Kfound 5 matches; saved identifiers to picklist file "/>
+            </assert_stderr>
+        </test>
+        <!-- Test 05: single quotes in the pattern are escaped and passed
+             through literally -->
+        <test expect_num_outputs="1">
+            <param name="taxonomy_files" value="test.ncbi-taxonomy.csv"/>
+            <param name="pattern" value="x&apos; ; touch pwned ; &apos;"/>
+            <output name="grep" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="1"/>
+                </assert_contents>
+            </output>
+            <assert_stderr>
+                <has_text text="Kfound 0 matches; saved identifiers to picklist file "/>
+            </assert_stderr>
+        </test>
+        <!-- Test 06: '$' in the pattern is passed through literally -->
+        <test expect_num_outputs="1">
+            <param name="taxonomy_files" value="test.ncbi-taxonomy.csv"/>
+            <param name="pattern" value="x$(touch /tmp/INJECTION_PROBE_SM)"/>
+            <output name="grep" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="1"/>
+                </assert_contents>
+            </output>
+            <assert_stderr>
+                <has_text text="Kfound 0 matches; saved identifiers to picklist file "/>
+            </assert_stderr>
+        </test>
+        <!-- Test 07: double quotes in the pattern are passed through
+             literally -->
+        <test expect_num_outputs="1">
+            <param name="taxonomy_files" value="test.ncbi-taxonomy.csv"/>
+            <param name="pattern" value="q&quot; ; touch /tmp/INJECTION_PROBE_DQ ; &quot;"/>
+            <output name="grep" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="1"/>
+                </assert_contents>
+            </output>
+            <assert_stderr>
+                <has_text text="Kfound 0 matches; saved identifiers to picklist file "/>
             </assert_stderr>
         </test>
     </tests>
